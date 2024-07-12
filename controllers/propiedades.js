@@ -15,21 +15,30 @@ router.post("/", async function (req, res) {
 
     const {
       superficie,
-      habitaciones = 0,
+      habitaciones = 0,  
       valor = 0,
-      id_localidad = 1,
+      localidad = 1,
       estado,
       titulo,
       descripcion,
       operacion,
-      tipo_propiedad,
-    } = req.body;
+      tipoProp,
+      foto
+    } = req.body; 
 
-    const query = `insert into propiedades (superficie, habitaciones, valor, id_localidad, estado, titulo, descripcion, operacion, tipo_propiedad) values (${superficie}, ${habitaciones}, ${valor}, ${id_localidad}, "${estado}", "${titulo}", "${descripcion}"," ${operacion}", "${tipo_propiedad}")`;
+    const query = `insert into propiedades (superficie, habitaciones, valor, id_localidad, estado, titulo, descripcion, operacion, tipo_propiedad) values (${superficie}, ${habitaciones}, ${valor}, ${localidad}, "${estado}", "${titulo}", "${descripcion}"," ${operacion}", "${tipoProp}")`;
     const data = await executeQuery(query);
+
+    if (foto) {
+      console.log(data);
+      const queryFoto = `insert into propiedades_fotos (id_propiedad, url_foto) values (${data.insertId}, "${foto}")`;
+      await executeQuery(queryFoto);
+    }
+
     res.json(data);
   } catch (err) {
-    throw err;
+    console.error(err)
+    res.status(500).send({ message: "Ocurrio un error al crear la propiedad" });
   }
 });
 
@@ -52,22 +61,10 @@ router.get("/", async function (req, res) {
 
     const tipo_propiedad = req.query.tipo_propiedad;
 
-    if (tipo_propiedad) {
-      where.push(`tipo_propiedad = "${tipo_propiedad}"`);
+    if (tipo_propiedad) {        
+      where.push(`tipo_propiedad = "${tipo_propiedad}"`); 
     }
 
-    const valor_minimo = req.query.valor_min;
-
-    if (valor_minimo) {
-      where.push(`valor >= ${valor_minimo}`);
-    }
-
-
-    const valor_maximo = req.query.valor_max;
-
-    if (valor_maximo) {
-      where.push(`valor <= ${valor_maximo}`);
-    }
 
     if (where.length) {
       query = `${query} where ${where.join(" and ")}`;
@@ -100,7 +97,8 @@ router.get("/", async function (req, res) {
 
     res.json(data);
   } catch (err) {
-    throw err;
+    console.error(err)
+    res.status(500).send({ message: "Ocurrio un error al obtener las propiedades" });
   }
 });
 
@@ -150,11 +148,12 @@ router.get("/:id", async function (req, res) {
 
     res.json(data[0]);
   } catch (err) {
-    throw err;
+    console.error(err)
+    res.status(500).send({ message: "Ocurrio un error al obtener la propiedade" });
   }
 });
 
-router.put("/:id", async function (req, res) {
+router.put("/:id", async function (req, res) {  
   try {
     const idPropiedad = req.params.id;
     console.log(`Editando la propiedad con id: ${idPropiedad}`);
@@ -162,7 +161,7 @@ router.put("/:id", async function (req, res) {
     const registros = await executeQuery(
       `select * from propiedades where id = ${idPropiedad}`
     );
-
+  
     if (!registros.length) {
       res.status(404).json({
         error: "Propiedad no encontrada",
@@ -179,7 +178,7 @@ router.put("/:id", async function (req, res) {
       titulo,
       descripcion,
       operacion,
-      tipo_propiedad,
+      tipoProp,
       id_localidad,
       foto
     } = req.body;
@@ -212,8 +211,8 @@ router.put("/:id", async function (req, res) {
       updates.push(`operacion = "${operacion}"`);
     }
 
-    if (tipo_propiedad) {
-      updates.push(`tipo_propiedad = "${tipo_propiedad}"`);
+    if (tipoProp) {
+      updates.push(`tipo_propiedad = "${tipoProp}"`);
     }
 
     if (id_localidad) {
@@ -231,10 +230,14 @@ router.put("/:id", async function (req, res) {
     await executeQuery(query);
 
     if (foto) {
-      const fotoExistente = await executeQuery(`select * from propiedades_fotos where id_propiedad = ${idPropiedad} and url_foto = "${foto}"`);
+      const fotoExistente = await executeQuery(`select * from propiedades_fotos where id_propiedad = ${idPropiedad}`);
 
       if (!fotoExistente.length) {
+        console.log("Creando la foto", foto)
         await executeQuery(`insert into propiedades_fotos (id_propiedad, url_foto) values (${idPropiedad}, "${foto}")`); 
+      } else {
+        console.log("Actualizando la foto", foto)
+        await executeQuery(`update propiedades_fotos set url_foto = "${foto}" where id_propiedad = ${idPropiedad}`); 
       }
     }
 
@@ -242,7 +245,8 @@ router.put("/:id", async function (req, res) {
       mensaje: "La propiedad se modificó correcamente",
     });
   } catch (err) {
-    throw err;
+    console.error(err)
+    res.status(500).send({ message: "Ocurrio un error al modificar la propiedad" });
   }
 });
 
@@ -266,7 +270,8 @@ router.delete("/:id", async function (req, res) {
       mensaje: "La propiedad se eliminó correctamente",
     });
   } catch (err) {
-    throw err;
+    console.error(err)
+    res.status(500).send({ message: "Ocurrio un error al eliminar la propiedad" });
   }
 });
 

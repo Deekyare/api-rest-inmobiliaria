@@ -25,7 +25,7 @@ router.post("/", async function (req, res) {
     res.json(data);
   } catch (err) {
     throw err;
-  }
+  }   
 });
 
 router.get("/", async function (req, res) {
