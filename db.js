@@ -1,10 +1,11 @@
 const mysql = require("mysql");
 
+
 const connection = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "zaq789789",
-  database: "inmoflex",
+  host: "mysql-deekyare.alwaysdata.net",
+  user: "deekyare",
+  password: process.env.DB_PASSWORD,
+  database: "deekyare_inmoflex",
 });
 
 connection.connect((err) => {
@@ -23,6 +24,6 @@ const executeQuery = (sql) => {
       resolve(result);
     });
   });
-};
+};   
 
 module.exports = { connection, executeQuery };

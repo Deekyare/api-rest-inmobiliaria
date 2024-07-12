@@ -244,7 +244,7 @@ router.put("/:id", async function (req, res) {
     res.json({
       mensaje: "La propiedad se modificó correcamente",
     });
-  } catch (err) {
+  } catch (err) {     
     console.error(err)
     res.status(500).send({ message: "Ocurrio un error al modificar la propiedad" });
   }
