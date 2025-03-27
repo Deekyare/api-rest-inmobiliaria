@@ -24,6 +24,5 @@ app.listen(port, () => {
 });
 
 app.use((err, req, res, next) => {
-  console.log("asdasdasd")
   res.status(500).send("Ocurrio un error inesperado");
 });
